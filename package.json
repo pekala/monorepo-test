@@ -1,10 +1,22 @@
 {
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "commit": "git-cz",
+    "check-release": "_scripts/check-release.js"
   },
   "author": "Maciej Pekala",
   "license": "MIT",
   "devDependencies": {
-    "conventional-changelog": "^1.1.0"
+    "commitizen": "^2.8.2",
+    "conventional-changelog": "^1.1.0",
+    "cz-conventional-changelog": "^1.1.6",
+    "cz-customizable": "^4.0.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-customizable"
+    },
+    "cz-customizable": {
+      "config": "./.cz-config.js"
+    }
   }
 }

@@ -24,13 +24,13 @@ var theCommitThatStartedTheMonorepo = fs
   .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
   .trim();
 
-var packagesWithChangelog = fs
+var npmPackages = fs
   .readFileSync(__dirname + '/PACKAGES', 'utf8')
   .trim()
   .split('\n');
 
 var status = {};
-packagesWithChangelog.forEach(function (package) {
+npmPackages.forEach(function (package) {
   status[package] = {
     increment: 0, // 0 = nothing, 1 = patch, 2 = minor, 3 = major
     commits: [],
