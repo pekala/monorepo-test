@@ -1,8 +1,4 @@
-// npm --no-git-tag-version version patch
-// git add -A
-// git commit -m \"release(PKG_NAME): VERSION"
-// git push origin master
-// npm publish
+#!/usr/bin/env node
 
 var execSync = require('child_process').execSync;
 

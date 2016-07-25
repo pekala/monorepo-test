@@ -1,7 +1,8 @@
 {
   "scripts": {
     "commit": "git-cz",
-    "check-release": "_scripts/check-release.js"
+    "check-release": "_scripts/check-release.js",
+    "cross-link": "_scripts/symlink-to-each-other.js"
   },
   "author": "Maciej Pekala",
   "license": "MIT",
@@ -10,6 +11,7 @@
     "commitizen": "^2.8.2",
     "conventional-changelog": "^1.1.0",
     "cz-customizable": "^4.0.0",
+    "mkdirp": "^0.5.1",
     "tempfile": "^1.1.1"
   },
   "config": {
