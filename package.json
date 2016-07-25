@@ -3,7 +3,7 @@
     "commit": "git-cz",
     "check-release": "_scripts/check-release.js",
     "cross-link": "_scripts/symlink-to-each-other.js",
-    "release": "_scripts/release-changed.sh"
+    "release": "_scripts/release-all-changed.js"
   },
   "author": "Maciej Pekala",
   "license": "MIT",

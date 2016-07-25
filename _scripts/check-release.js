@@ -1,41 +1,6 @@
 #!/usr/bin/env node
 
-/** This script checks whether each package should be released with
- * a new version according to semver. It has two modes: REPORT and ORACLE.
- *
- * It runs in REPORT mode if no additional command line argument was given.
- * For instance, `node check-release.js`. It will display a human readable
- * report on which packages should have new releases.
- *
- * It runs in ORACLE mode is an argument was provided, e.g.,
- * `node check-release.js xstream-run`,
- * it will exit with a status code answering whether the `xstream-run`
- * package should be released with a new version.
- * 0 means no new release is necessary
- * 1 means it should have a new patch version _._.x release
- * 2 means it should have a new minor version _.x._ release
- * 3 means it should have a new major version x._._ release
- */
-
-var conventionalChangelog = require('conventional-changelog');
-var fs = require('fs');
-
-var theCommitThatStartedTheMonorepo = fs
-    .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
-    .trim();
-
-var npmPackages = fs
-    .readFileSync(__dirname + '/PACKAGES', 'utf8')
-    .trim()
-    .split('\n');
-
-var status = {};
-npmPackages.forEach(function (package) {
-    status[package] = {
-        increment: 0, // 0 = nothing, 1 = patch, 2 = minor, 3 = major
-        commits: [],
-    };
-});
+const checkPackageRelease = require('./check-package-release');
 
 function incrementName(code) {
     if (code === 1) {
@@ -47,11 +12,6 @@ function incrementName(code) {
     } else {
         return '';
     }
-}
-
-function isCommitBreakingChange(commit) {
-    return (typeof commit.footer === 'string'
-        && commit.footer.indexOf('BREAKING CHANGE') !== -1);
 }
 
 function showReportHeaderPositive() {
@@ -93,47 +53,4 @@ function showReport(status) {
     }
 }
 
-conventionalChangelog({
-    preset: 'angular',
-    append: true,
-    transform: function (commit, cb) {
-        if (commit.scope === 'META') {
-            cb();
-            return;
-        }
-
-        var package = commit.scope;
-        var toPush = null;
-        if (commit.type === 'fix') {
-            status[package].increment = Math.max(status[package].increment, 1);
-            toPush = commit;
-        }
-        if (commit.type === 'feat') {
-            status[package].increment = Math.max(status[package].increment, 2);
-            toPush = commit;
-        }
-        if (isCommitBreakingChange(commit)) {
-            status[package].increment = Math.max(status[package].increment, 3);
-            toPush = commit;
-        }
-        if (toPush) {
-            status[package].commits.push(commit);
-        }
-        if (commit.type === 'release') {
-            status[package].increment = 0;
-            status[package].commits = [];
-        }
-        cb();
-    },
-}, {}, { from: theCommitThatStartedTheMonorepo, reverse: true })
-    .on('end', function () {
-        // ORACLE mode
-        var argPackage = process.argv[2];
-        if (typeof argPackage === 'string' && argPackage.length > 0) {
-            return process.exit(status[argPackage].increment);
-        }
-        // REPORT mode
-        else {
-            showReport(status);
-        }
-    }).resume();
+checkPackageRelease().then(status => showReport(status));
