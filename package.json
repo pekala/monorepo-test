@@ -2,7 +2,8 @@
   "scripts": {
     "commit": "git-cz",
     "check-release": "_scripts/check-release.js",
-    "cross-link": "_scripts/symlink-to-each-other.js"
+    "cross-link": "_scripts/symlink-to-each-other.js",
+    "release": "_scripts/release-changed.sh"
   },
   "author": "Maciej Pekala",
   "license": "MIT",
