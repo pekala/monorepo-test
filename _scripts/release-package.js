@@ -48,14 +48,14 @@ try {
 }
 console.log(gitOutput);
 
-// var npmPublishOutput;
-// try {
-//     npmPublishOutput = execSync(`npm publish`, {
-//         cwd: packageDir,
-//         encoding: 'utf8',
-//     });
-// } catch(e) {
-//     console.error(`Could not publish ${packageName}@${newVersion}: ${e}`);
-//     process.exit(1);
-// }
-// console.log(npmPublishOutput);
+var npmPublishOutput;
+try {
+    npmPublishOutput = execSync(`npm publish`, {
+        cwd: packageDir,
+        encoding: 'utf8',
+    });
+} catch(e) {
+    console.error(`Could not publish ${packageName}@${newVersion}: ${e}`);
+    process.exit(1);
+}
+console.log(npmPublishOutput);

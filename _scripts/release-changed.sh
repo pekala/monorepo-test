@@ -14,11 +14,11 @@ while read d; do
   needsRelease=0
   node ../_scripts/check-release.js $d || needsRelease=$?;
   if [ $needsRelease -eq 1 ]; then
-    sh ./release-changed.sh $d patch || exitstatus=$?;
+    node ../_scripts/release-package.js $d patch || exitstatus=$?;
   elif [ $needsRelease -eq 2 ]; then
-    sh ./release-changed.sh $d minor || exitstatus=$?;
+    node ../_scripts/release-package.js $d minor || exitstatus=$?;
   elif [ $needsRelease -eq 3 ]; then
-    sh ./release-changed.sh $d major || exitstatus=$?;
+    node ../_scripts/release-package.js $d major || exitstatus=$?;
   fi
   cd ..;
   if [ $exitstatus -ne 0 ]; then
