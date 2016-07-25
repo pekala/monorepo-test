@@ -21,119 +21,119 @@ var conventionalChangelog = require('conventional-changelog');
 var fs = require('fs');
 
 var theCommitThatStartedTheMonorepo = fs
-  .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
-  .trim();
+    .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
+    .trim();
 
 var npmPackages = fs
-  .readFileSync(__dirname + '/PACKAGES', 'utf8')
-  .trim()
-  .split('\n');
+    .readFileSync(__dirname + '/PACKAGES', 'utf8')
+    .trim()
+    .split('\n');
 
 var status = {};
 npmPackages.forEach(function (package) {
-  status[package] = {
-    increment: 0, // 0 = nothing, 1 = patch, 2 = minor, 3 = major
-    commits: [],
-  };
+    status[package] = {
+        increment: 0, // 0 = nothing, 1 = patch, 2 = minor, 3 = major
+        commits: [],
+    };
 });
 
 function incrementName(code) {
-  if (code === 1) {
-    return 'patch';
-  } else if (code === 2) {
-    return 'minor';
-  } else if (code === 3) {
-    return 'major';
-  } else {
-    return '';
-  }
+    if (code === 1) {
+        return 'patch';
+    } else if (code === 2) {
+        return 'minor';
+    } else if (code === 3) {
+        return 'major';
+    } else {
+        return '';
+    }
 }
 
 function isCommitBreakingChange(commit) {
-  return (typeof commit.footer === 'string'
-    && commit.footer.indexOf('BREAKING CHANGE') !== -1);
+    return (typeof commit.footer === 'string'
+        && commit.footer.indexOf('BREAKING CHANGE') !== -1);
 }
 
 function showReportHeaderPositive() {
-  console.log('RELEASES TO DO\n\n' +
-              'We checked all packages and recent commits, and discovered that\n' +
-              'according to semver.org you should release new versions for the\n' +
-              'following packages.\n');
+    console.log('RELEASES TO DO\n\n' +
+                            'We checked all packages and recent commits, and discovered that\n' +
+                            'according to semver.org you should release new versions for the\n' +
+                            'following packages.\n');
 }
 
 function showReportHeaderNegative() {
-  console.log('Nothing to release.\n\n' +
-              'We checked all packages and recent commits, and discovered that\n' +
-              'you do not need to release any new version, according to semver.org.')
+    console.log('Nothing to release.\n\n' +
+                            'We checked all packages and recent commits, and discovered that\n' +
+                            'you do not need to release any new version, according to semver.org.')
 }
 
 function showReport(status) {
-  var headerShown = false;
-  for (var package in status) {
-    if (status.hasOwnProperty(package) && status[package].increment > 0) {
-      if (!headerShown) {
-        showReportHeaderPositive();
-        headerShown = true;
-      }
+    var headerShown = false;
+    for (var package in status) {
+        if (status.hasOwnProperty(package) && status[package].increment > 0) {
+            if (!headerShown) {
+                showReportHeaderPositive();
+                headerShown = true;
+            }
 
-      console.log('`' + package + '` needs a new ' +
-        incrementName(status[package].increment).toUpperCase() +
-        ' version released because:');
-      status[package].commits.forEach(function (commit) {
-        console.log('  . ' + commit.header);
-        if (isCommitBreakingChange(commit)) {
-          console.log('    BREAKING CHANGE');
+            console.log('`' + package + '` needs a new ' +
+                incrementName(status[package].increment).toUpperCase() +
+                ' version released because:');
+            status[package].commits.forEach(function (commit) {
+                console.log('  . ' + commit.header);
+                if (isCommitBreakingChange(commit)) {
+                    console.log('    BREAKING CHANGE');
+                }
+            });
+            console.log('');
         }
-      });
-      console.log('');
     }
-  }
-  if (!headerShown) {
-    showReportHeaderNegative();
-  }
+    if (!headerShown) {
+        showReportHeaderNegative();
+    }
 }
 
 conventionalChangelog({
-  preset: 'angular',
-  append: true,
-  transform: function (commit, cb) {
-    if (commit.scope === 'META') {
-      cb();
-      return;
-    }
+    preset: 'angular',
+    append: true,
+    transform: function (commit, cb) {
+        if (commit.scope === 'META') {
+            cb();
+            return;
+        }
 
-    var package = commit.scope;
-    var toPush = null;
-    if (commit.type === 'fix') {
-      status[package].increment = Math.max(status[package].increment, 1);
-      toPush = commit;
-    }
-    if (commit.type === 'feat') {
-      status[package].increment = Math.max(status[package].increment, 2);
-      toPush = commit;
-    }
-    if (isCommitBreakingChange(commit)) {
-      status[package].increment = Math.max(status[package].increment, 3);
-      toPush = commit;
-    }
-    if (toPush) {
-      status[package].commits.push(commit);
-    }
-    if (commit.type === 'release') {
-      status[package].increment = 0;
-      status[package].commits = [];
-    }
-    cb();
-  },
+        var package = commit.scope;
+        var toPush = null;
+        if (commit.type === 'fix') {
+            status[package].increment = Math.max(status[package].increment, 1);
+            toPush = commit;
+        }
+        if (commit.type === 'feat') {
+            status[package].increment = Math.max(status[package].increment, 2);
+            toPush = commit;
+        }
+        if (isCommitBreakingChange(commit)) {
+            status[package].increment = Math.max(status[package].increment, 3);
+            toPush = commit;
+        }
+        if (toPush) {
+            status[package].commits.push(commit);
+        }
+        if (commit.type === 'release') {
+            status[package].increment = 0;
+            status[package].commits = [];
+        }
+        cb();
+    },
 }, {}, { from: theCommitThatStartedTheMonorepo, reverse: true })
-  .on('end', function () {
-    // ORACLE mode
-    var argPackage = process.argv[2];
-    if (typeof argPackage === 'string' && argPackage.length > 0) {
-      return process.exit(status[argPackage].increment);
-    }
-    // REPORT mode
-    else {
-      showReport(status);
-    }
-  }).resume();
+    .on('end', function () {
+        // ORACLE mode
+        var argPackage = process.argv[2];
+        if (typeof argPackage === 'string' && argPackage.length > 0) {
+            return process.exit(status[argPackage].increment);
+        }
+        // REPORT mode
+        else {
+            showReport(status);
+        }
+    }).resume();
