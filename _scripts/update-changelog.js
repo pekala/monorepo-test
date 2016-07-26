@@ -18,7 +18,7 @@ const argPackage = process.argv[2];
 // Assume that for each package we will start iterating from
 // theCommitThatStartedTheMonorepo onwards.
 const startCommits = {};
-packages.forEach(pkg => startCommits[pkg] = theCommitThatStartedTheMonorepo);
+npmPackages.forEach(pkg => startCommits[pkg] = theCommitThatStartedTheMonorepo);
 
 // Update the startCommit for each package, looking for release commits
 // for each package.
@@ -35,7 +35,7 @@ conventionalChangelog({
     .on('end', runUpdateChangelogs).resume();
 
 function runUpdateChangelogs() {
-    packages
+    npmPackages
         .filter(pkg => {
             if (typeof argPackage === 'string' && argPackage.length > 0) {
                 return argPackage === pkg;
