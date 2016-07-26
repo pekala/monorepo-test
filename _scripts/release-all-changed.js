@@ -21,14 +21,14 @@ function incrementName(code) {
 }
 
 checkPackageRelease().then(releaseStatus => {
-    npmPackages.forEach(package => {
-        console.log(`> (${package}) \n> ... check if it needs a new version released, and publishes`);
-        const incrementValue = releaseStatus[package].increment;
+    npmPackages.forEach(pkg => {
+        console.log(`> (${pkg}) \n> ... check if it needs a new version released, and publishes`);
+        const incrementValue = releaseStatus[pkg].increment;
         if (incrementValue > 0) {
-            console.log(`> Releasing new ${incrementName(incrementValue)} version of ${package}\n`);
-            releasePackage(package, incrementName(incrementValue));
+            console.log(`> Releasing new ${incrementName(incrementValue)} version of ${pkg}\n`);
+            releasePackage(pkg, incrementName(incrementValue));
         } else {
-            console.log(`> Nope, all clean in ${package}\n`);
+            console.log(`> Nope, all clean in ${pkg}\n`);
         }
     });
 }).catch(error => {

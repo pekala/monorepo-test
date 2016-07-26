@@ -18,8 +18,8 @@ function isCommitBreakingChange(commit) {
 module.exports = function () {
     return new Promise((resolve, reject) => {
         const status = {};
-        npmPackages.forEach(package => {
-            status[package] = {
+        npmPackages.forEach(pkg => {
+            status[pkg] = {
                 increment: 0, // 0 = nothing, 1 = patch, 2 = minor, 3 = major
                 commits: [],
             };
@@ -33,26 +33,26 @@ module.exports = function () {
                     return;
                 }
 
-                var package = commit.scope;
+                var pkg = commit.scope;
                 var toPush = null;
                 if (commit.type === 'fix') {
-                    status[package].increment = Math.max(status[package].increment, 1);
+                    status[pkg].increment = Math.max(status[pkg].increment, 1);
                     toPush = commit;
                 }
                 if (commit.type === 'feat') {
-                    status[package].increment = Math.max(status[package].increment, 2);
+                    status[pkg].increment = Math.max(status[pkg].increment, 2);
                     toPush = commit;
                 }
                 if (isCommitBreakingChange(commit)) {
-                    status[package].increment = Math.max(status[package].increment, 3);
+                    status[pkg].increment = Math.max(status[pkg].increment, 3);
                     toPush = commit;
                 }
                 if (toPush) {
-                    status[package].commits.push(commit);
+                    status[pkg].commits.push(commit);
                 }
                 if (commit.type === 'release') {
-                    status[package].increment = 0;
-                    status[package].commits = [];
+                    status[pkg].increment = 0;
+                    status[pkg].commits = [];
                 }
                 cb();
             },

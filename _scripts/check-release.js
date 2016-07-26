@@ -30,17 +30,17 @@ function showReportHeaderNegative() {
 
 function showReport(status) {
     var headerShown = false;
-    for (var package in status) {
-        if (status.hasOwnProperty(package) && status[package].increment > 0) {
+    for (var pkg in status) {
+        if (status.hasOwnProperty(pkg) && status[pkg].increment > 0) {
             if (!headerShown) {
                 showReportHeaderPositive();
                 headerShown = true;
             }
 
-            console.log('`' + package + '` needs a new ' +
-                incrementName(status[package].increment).toUpperCase() +
+            console.log('`' + pkg + '` needs a new ' +
+                incrementName(status[pkg].increment).toUpperCase() +
                 ' version released because:');
-            status[package].commits.forEach(function (commit) {
+            status[pkg].commits.forEach(function (commit) {
                 console.log('  . ' + commit.header);
                 if (isCommitBreakingChange(commit)) {
                     console.log('    BREAKING CHANGE');

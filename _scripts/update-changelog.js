@@ -18,7 +18,7 @@ const argPackage = process.argv[2];
 // Assume that for each package we will start iterating from
 // theCommitThatStartedTheMonorepo onwards.
 const startCommits = {};
-packages.forEach(package => startCommits[package] = theCommitThatStartedTheMonorepo);
+packages.forEach(pkg => startCommits[pkg] = theCommitThatStartedTheMonorepo);
 
 // Update the startCommit for each package, looking for release commits
 // for each package.
@@ -36,31 +36,31 @@ conventionalChangelog({
 
 function runUpdateChangelogs() {
     packages
-        .filter(package => {
+        .filter(pkg => {
             if (typeof argPackage === 'string' && argPackage.length > 0) {
-                return argPackage === package;
+                return argPackage === pkg;
             } else {
                 return true;
             }
         })
-        .forEach(package => {
-            console.log('updating changelog for package ' + package);
-            var filename = __dirname + '/../' + package + '/CHANGELOG.md';
+        .forEach(pkg => {
+            console.log('updating changelog for package ' + pkg);
+            var filename = __dirname + '/../' + pkg + '/CHANGELOG.md';
             var changelogOpts = {
                 preset: 'angular',
                 releaseCount: 0,
                 pkg: {
-                    path: __dirname + '/../' + package + '/package.json',
+                    path: __dirname + '/../' + pkg + '/package.json',
                 },
                 transform: function (commit, cb) {
-                    if (commit.scope === package) {
+                    if (commit.scope === pkg) {
                         cb(null, commit);
                     } else {
                         cb();
                     }
                 },
             };
-            var gitRawCommitsOpts = { from: startCommits[package] };
+            var gitRawCommitsOpts = { from: startCommits[pkg] };
 
             var readStream = fs.createReadStream(filename);
             var tmp = tempfile();
