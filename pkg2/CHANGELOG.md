@@ -1,3 +1,13 @@
+<a name="2.1.1"></a>
+## 2.1.1 (2016-07-26)
+
+
+### Bug Fixes
+
+* **pkg2:** improve the message in console log 35682de
+
+
+
 <a name="2.1.0"></a>
 # 2.1.0 (2016-07-25)
 
