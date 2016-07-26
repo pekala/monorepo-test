@@ -5,11 +5,9 @@ const execSync = require('child_process').execSync;
 const fs = require('fs');
 const path = require('path');
 const mkdirp = require('mkdirp');
+const findPackages = require('./find-packages');
 
-const npmPackages = fs
-    .readFileSync(__dirname + '/PACKAGES', 'utf8')
-    .trim()
-    .split('\n');
+const npmPackages = findPackages();
 
 npmPackages.forEach(packageADir => {
     const packageADirPath = path.resolve(__dirname, '..', packageADir);
@@ -27,14 +25,13 @@ npmPackages.forEach(packageADir => {
             console.log(`Linking ${packageBDir} to ${packageADir}`)
             let linkOutput;
             try {
-
                 linkOutput = execSync(`npm link ../${packageBDir}`, {
                     cwd: packageADirPath,
                     encoding: 'utf8',
                 });
-            } catch(e) {
+            } catch(error) {
                 console.error(`Could not link ${packageBDir} to ${packageADir}: ${e}`);
-                process.exit(1);
+                process.exit(error.code);
             }
         }
     });

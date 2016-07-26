@@ -1,4 +1,6 @@
-var execSync = require('child_process').execSync;
+'use strict';
+
+const execSync = require('child_process').execSync;
 
 module.exports = function (packageName, updateType) {
     var packageDir = __dirname + '/../' + packageName;
@@ -10,9 +12,9 @@ module.exports = function (packageName, updateType) {
             cwd: packageDir,
             encoding: 'utf8',
         });
-    } catch(e) {
-        console.error(`Could not bump the version for ${packageName}: ${e}`);
-        process.exit(1);
+    } catch(error) {
+        console.error(`Could not bump the version for ${packageName}: ${error}`);
+        process.exit(error.status);
     }
     console.log(`New version will be ${newVersion}`);
 
@@ -23,9 +25,9 @@ module.exports = function (packageName, updateType) {
             cwd: __dirname,
             encoding: 'utf8',
         });
-    } catch(e) {
-        console.error(`Could not update the changelog for ${packageName}: ${e}`);
-        process.exit(1);
+    } catch(error) {
+        console.error(`Could not update the changelog for ${packageName}: ${error}`);
+        process.exit(error.status);
     }
     console.log(changelogOutput);
 
@@ -35,9 +37,9 @@ module.exports = function (packageName, updateType) {
             cwd: packageDir,
             encoding: 'utf8',
         });
-    } catch(e) {
-        console.error(`Could not commit and push release changes for ${packageName}: ${e}`);
-        process.exit(1);
+    } catch(error) {
+        console.error(`Could not commit and push release changes for ${packageName}: ${error}`);
+        process.exit(error.status);
     }
     console.log(gitOutput);
 
@@ -47,9 +49,9 @@ module.exports = function (packageName, updateType) {
             cwd: packageDir,
             encoding: 'utf8',
         });
-    } catch(e) {
-        console.error(`Could not publish ${packageName}@${newVersion}: ${e}`);
-        process.exit(1);
+    } catch(error) {
+        console.error(`Could not publish ${packageName}@${newVersion}: ${error}`);
+        process.exit(error.status);
     }
     console.log(npmPublishOutput);
 }

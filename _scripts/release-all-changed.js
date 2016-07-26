@@ -1,14 +1,12 @@
 #!/usr/bin/env node
+'use strict';
 
-const execSync = require('child_process').execSync;
 const fs = require('fs');
 const checkPackageRelease = require('./check-package-release');
 const releasePackage = require('./release-package');
+const findPackages = require('./find-packages');
 
-const npmPackages = fs
-    .readFileSync(__dirname + '/PACKAGES', 'utf8')
-    .trim()
-    .split('\n');
+const npmPackages = findPackages();
 
 function incrementName(code) {
     if (code === 1) {

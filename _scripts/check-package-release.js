@@ -1,14 +1,14 @@
+'use strict';
+
 const conventionalChangelog = require('conventional-changelog');
 const fs = require('fs');
+const findPackages = require('./find-packages');
 
 const theCommitThatStartedTheMonorepo = fs
     .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
     .trim();
 
-const npmPackages = fs
-    .readFileSync(__dirname + '/PACKAGES', 'utf8')
-    .trim()
-    .split('\n');
+const npmPackages = findPackages();
 
 function isCommitBreakingChange(commit) {
     return (typeof commit.footer === 'string'

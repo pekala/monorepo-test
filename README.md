@@ -6,7 +6,7 @@ This mostly borrows code from [Cycle.js repository](https://github.com/cyclejs/c
 - [x] packages do not require npm scripts
 - [x] some of the scripts rewritten in JS to ease changes
 - [x] feeds the list of packages to commitizen's scope list
-- [ ] auto-detect packages (as opposed to keep a list in a file)
+- [x] auto-detect packages (as opposed to keep a list in a file)
 - [ ] auto-update cross dependencies versions (after linking and testing)
 - [ ] create custom commitizen adapter that auto-detect which package was affected by changes
 - [ ] ...

@@ -1,11 +1,9 @@
 'use strict';
 
 const fs = require('fs');
+const findPackages = require('./_scripts/find-packages');
 
-const packageScopes = fs
-    .readFileSync(__dirname + '/_scripts/PACKAGES', 'utf8')
-    .trim()
-    .split('\n')
+const packageScopes = findPackages()
     .map(packageName => ({ name: packageName }));
 
 module.exports = {

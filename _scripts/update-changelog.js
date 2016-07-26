@@ -1,24 +1,23 @@
 #!/usr/bin/env node
+'use strict';
 
-var conventionalChangelog = require('conventional-changelog');
-var addStream = require('add-stream');
-var tempfile = require('tempfile');
-var fs = require('fs');
+const conventionalChangelog = require('conventional-changelog');
+const addStream = require('add-stream');
+const tempfile = require('tempfile');
+const fs = require('fs');
+const findPackages = require('./find-packages');
 
-var theCommitThatStartedTheMonorepo = fs
+const theCommitThatStartedTheMonorepo = fs
     .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
     .trim();
 
-var packages = fs
-    .readFileSync(__dirname + '/PACKAGES', 'utf8')
-    .trim()
-    .split('\n');
+const npmPackages = findPackages();
 
-var argPackage = process.argv[2];
+const argPackage = process.argv[2];
 
 // Assume that for each package we will start iterating from
 // theCommitThatStartedTheMonorepo onwards.
-var startCommits = {};
+const startCommits = {};
 packages.forEach(package => startCommits[package] = theCommitThatStartedTheMonorepo);
 
 // Update the startCommit for each package, looking for release commits
