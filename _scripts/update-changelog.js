@@ -45,8 +45,8 @@ function runUpdateChangelogs() {
         })
         .forEach(pkg => {
             console.log('updating changelog for package ' + pkg);
-            var filename = __dirname + '/../' + pkg + '/CHANGELOG.md';
-            var changelogOpts = {
+            const filename = __dirname + '/../' + pkg + '/CHANGELOG.md';
+            const changelogOpts = {
                 preset: 'angular',
                 releaseCount: 0,
                 pkg: {
@@ -60,10 +60,10 @@ function runUpdateChangelogs() {
                     }
                 },
             };
-            var gitRawCommitsOpts = { from: startCommits[pkg] };
+            const gitRawCommitsOpts = { from: startCommits[pkg] };
 
-            var readStream = fs.createReadStream(filename);
-            var tmp = tempfile();
+            const readStream = fs.createReadStream(filename);
+            const tmp = tempfile();
             conventionalChangelog(changelogOpts, {}, gitRawCommitsOpts)
                 .pipe(addStream(readStream))
                 .pipe(fs.createWriteStream(tmp))

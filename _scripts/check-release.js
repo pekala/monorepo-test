@@ -29,8 +29,8 @@ function showReportHeaderNegative() {
 }
 
 function showReport(status) {
-    var headerShown = false;
-    for (var pkg in status) {
+    const headerShown = false;
+    for (let pkg in status) {
         if (status.hasOwnProperty(pkg) && status[pkg].increment > 0) {
             if (!headerShown) {
                 showReportHeaderPositive();
