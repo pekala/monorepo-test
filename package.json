@@ -13,6 +13,7 @@
     "conventional-changelog": "^1.1.0",
     "cz-customizable": "^4.0.0",
     "mkdirp": "^0.5.1",
+    "semver-compare": "^1.0.0",
     "tempfile": "^1.1.1"
   },
   "config": {
