@@ -1,3 +1,13 @@
+<a name="3.1.0"></a>
+# 3.1.0 (2016-07-31)
+
+
+### Features
+
+* **pkg1:** be less formal ([3e4e7c0](https://github.com/pekala/monorepo-test/commit/3e4e7c0))
+
+
+
 <a name="3.0.4"></a>
 ## 3.0.4 (2016-07-31)
 
