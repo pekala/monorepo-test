@@ -1,10 +1,21 @@
 'use strict';
 
-const fs = require('fs');
-const findPackages = require('./_scripts/find-packages');
+const execSync = require('child_process').execSync;
 
-const packageScopes = findPackages()
-    .map(packageName => ({ name: packageName }));
+let packages;
+try {
+    packages = execSync('find * -maxdepth 0 -type d | grep -Ev \'^(_)|node_modules\'', {
+        cwd: __dirname,
+        encoding: 'utf8',
+    });
+} catch(error) {
+    console.error(`Could not list the packages: ${error}`);
+    process.exit(error.status);
+}
+const packageScopes = packages
+    .trim()
+    .split('\n')
+    .map(pkg => ({ name: pkg }));
 
 module.exports = {
     types: [
@@ -12,8 +23,8 @@ module.exports = {
         { value: 'fix',      name: 'fix:      Submit a bug fix' },
         { value: 'refactor', name: 'refactor: A code change that neither fixes a bug nor adds a feature' },
         { value: 'test',     name: 'test:     Add tests only' },
+        { value: 'init',     name: 'init:     Initializing new package' },
         { value: 'docs',     name: 'docs:     Documentation only changes' },
-        { value: 'release',  name: 'release:  Publish a new version of a package.' },
         { value: 'chore',    name: 'chore:    Changes to the build process or auxiliary tools\n            and libraries such as documentation generation. META only.' },
         { value: 'style',    name: 'style:    Changes that do not affect the meaning of the code\n            (white-space, formatting, missing semi-colons, etc)' },
     ],

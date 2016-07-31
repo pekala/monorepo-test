@@ -1,38 +1,61 @@
 #!/usr/bin/env node
 'use strict';
 
-const execSync = require('child_process').execSync;
+const exec = require('child_process').exec;
 const fs = require('fs');
 const path = require('path');
-const mkdirp = require('mkdirp');
 const findPackages = require('./find-packages');
 
-const npmPackages = findPackages();
+Promise.resolve()
+    .then(() => findPackages())
+    .then(packages => packages.reduce(
+        (promise, pkg) => promise.then(() => linkPackage(pkg, packages)),
+        Promise.resolve()
+    ))
+    .catch(error => {
+        console.error(error);
+        process.exit(1);
+    });
 
-npmPackages.forEach(packageADir => {
-    const packageADirPath = path.resolve(__dirname, '..', packageADir);
+
+function linkPackage(pkg, packages) {
+    const packageADirPath = path.resolve(__dirname, '..', pkg.name);
     const packageAJson = require(`${packageADirPath}/package.json`);
-    const packageAName = packageAJson.name;
     const deps = packageAJson.dependencies || {};
     const devDeps = packageAJson.devDependencies || {};
-    mkdirp(`${packageADirPath}/node_modules`);
 
-    npmPackages.forEach(packageBDir => {
-        const packageBDirPath = path.resolve(__dirname, '..', packageBDir);
-        const packageBJson = require(`${packageBDirPath}/package.json`);
-        const packageBName = packageBJson.name;
-        if (packageBName in deps || packageBName in devDeps) {
-            console.log(`Linking ${packageBDir} to ${packageADir}`)
-            let linkOutput;
-            try {
-                linkOutput = execSync(`npm link ../${packageBDir}`, {
-                    cwd: packageADirPath,
-                    encoding: 'utf8',
-                });
-            } catch(error) {
-                console.error(`Could not link ${packageBDir} to ${packageADir}: ${e}`);
-                process.exit(error.code);
+    const dependencies = packages
+        .filter(pkgB => pkgB.name !== pkg.name)
+        .map(pkgB => {
+            const packageBDirPath = path.resolve(__dirname, '..', pkgB.name);
+            const packageBJson = require(`${packageBDirPath}/package.json`);
+            if (pkgB.npmName in deps || pkgB.npmName in devDeps) {
+                return pkgB;
+            } else {
+                return null;
             }
-        }
+        })
+        .filter(pkgB => pkgB);
+
+    if (!dependencies.length) {
+        return Promise.resolve();
+    }
+
+    const dirsToDelete = dependencies.map(pkg => `node_modules/${pkg.npmName}`).join(' ');
+    const pkgsToLink = dependencies.map(pkg => `../${pkg.name}`).join(' ');
+
+    return new Promise((resolve, reject) => {
+        exec(`rm -rf ${dirsToDelete} && npm link ${pkgsToLink}`, {
+            cwd: path.resolve(__dirname, '..', pkg.name),
+            encoding: 'utf8',
+        }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Could not link ${pkgsToLink} in ${pkg.name}: ${error} \n ${stderr}`);
+                reject(error.status);
+                return;
+            }
+            console.log(`Linked ${pkgsToLink} to ${pkg.name}`);
+            resolve();
+        });
     });
-});
+}

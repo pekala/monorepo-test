@@ -1,75 +1,43 @@
-#!/usr/bin/env node
-'use strict';
-
-const conventionalChangelog = require('conventional-changelog');
+const path = require('path');
+const fs = require('fs');
 const addStream = require('add-stream');
 const tempfile = require('tempfile');
-const fs = require('fs');
-const findPackages = require('./find-packages');
+const conventionalChangelog = require('conventional-changelog');
 
-const theCommitThatStartedTheMonorepo = fs
-    .readFileSync(__dirname + '/SEED_COMMIT', 'utf8')
-    .trim();
-
-const npmPackages = findPackages();
-
-const argPackage = process.argv[2];
-
-// Assume that for each package we will start iterating from
-// theCommitThatStartedTheMonorepo onwards.
-const startCommits = {};
-npmPackages.forEach(pkg => startCommits[pkg] = theCommitThatStartedTheMonorepo);
-
-// Update the startCommit for each package, looking for release commits
-// for each package.
-conventionalChangelog({
-    preset: 'angular',
-    append: true,
-    transform: function (commit, cb) {
-        if (commit.type === 'release') {
-            startCommits[commit.scope] = commit.hash;
+module.exports = function updateChangelog(pkg) {
+    return new Promise((resolve, reject) => {
+        if (!pkg.versionChange) {
+            resolve(pkg);
+            return;
         }
-        cb();
-    }
-}, {}, { from: theCommitThatStartedTheMonorepo, reverse: true })
-    .on('end', runUpdateChangelogs).resume();
 
-function runUpdateChangelogs() {
-    npmPackages
-        .filter(pkg => {
-            if (typeof argPackage === 'string' && argPackage.length > 0) {
-                return argPackage === pkg;
-            } else {
-                return true;
-            }
-        })
-        .forEach(pkg => {
-            console.log('updating changelog for package ' + pkg);
-            const filename = __dirname + '/../' + pkg + '/CHANGELOG.md';
-            const changelogOpts = {
-                preset: 'angular',
-                releaseCount: 0,
-                pkg: {
-                    path: __dirname + '/../' + pkg + '/package.json',
-                },
-                transform: function (commit, cb) {
-                    if (commit.scope === pkg) {
-                        cb(null, commit);
-                    } else {
-                        cb();
-                    }
-                },
-            };
-            const gitRawCommitsOpts = { from: startCommits[pkg] };
+        const pkgDir = path.resolve(__dirname, '..', pkg.name);
+        const changelogFile = path.resolve(pkgDir, 'CHANGELOG.md');
+        const readStream = fs.createReadStream(changelogFile);
+        const tmp = tempfile();
 
-            const readStream = fs.createReadStream(filename);
-            const tmp = tempfile();
-            conventionalChangelog(changelogOpts, {}, gitRawCommitsOpts)
-                .pipe(addStream(readStream))
-                .pipe(fs.createWriteStream(tmp))
-                .on('finish', function () {
-                    fs.createReadStream(tmp)
-                        .pipe(fs.createWriteStream(filename));
-                });
+        conventionalChangelog({
+            preset: 'angular',
+            releaseCount: 0,
+            pkg: {
+                path: path.resolve(pkgDir, 'package.json'),
+            },
+            transform: function (commit, cb) {
+                if (commit.scope === pkg.name) {
+                    cb(null, commit);
+                } else {
+                    cb();
+                }
+            },
+        }, {}, {
+            from: pkg.latestReleaseCommit.hash,
         })
+        .pipe(addStream(readStream))
+        .pipe(fs.createWriteStream(tmp))
+        .on('error', error => reject(error))
+        .on('finish', () => {
+            fs.createReadStream(tmp).pipe(fs.createWriteStream(changelogFile));
+            resolve(pkg);
+        });
+    });
 }

@@ -5,59 +5,82 @@ const execSync = require('child_process').execSync;
 const fs = require('fs');
 const path = require('path');
 const compareSemver = require('semver-compare');
-const findPackages = require('./find-packages');
 
-const npmPackages = findPackages();
-
-function testLinked(dir) {
-
-    return true;
+function testPackage(pkg) {
+    new Promise((resolve, reject) => {
+        exec('npm test', {
+            cwd: path.resolve(__dirname, '..', pkgB.name),
+            encoding: 'utf8',
+        }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Could not commit and push release changes for ${packageName}: ${error} \n ${stderr}`);
+                reject(error.status);
+            }
+            resolve(stdout);
+        });
+    });
 }
 
-function updateDependencyInPackage(dependency, version, pkgDir) {
-    const dirPath = path.resolve(__dirname, '..', pkgDir);
-    const pkgJsonPath = `${dirPath}/package.json`;
-    const pkgJson = require(pkgJsonPath);
-    const deps = pkgJson.dependencies || {};
-    const devDeps = pkgJson.devDependencies || {};
-    const hasDep = dependency in deps && compareSemver(version, deps[dependency]) === 1;
-    const hasDevDep = dependency in devDeps && compareSemver(version, devDeps[dependency]) === 1;
-
-    if (hasDep || hasDevDep) {
-        try {
-            execSync(`npm test`, {
-                cwd: dirPath,
-                encoding: 'utf8',
-            });
-        } catch(error) {
-            console.error(`Tests while trying to update ${dependency} to version ${version} in ${pkgJson.name}: \n ${error.stdout}`);
-            process.exit(error.status);
+function updateDependency(pkg, dependency) {
+    new Promise((resolve, reject) => {
+        if (pkg.hasDep) {
+            pkg.pkgJson.dependencies[dependency.npmName] = dependency.newVersion;
         }
-    } else {
-        return;
-    }
-
-    if (hasDep) {
-        const currentVersion = deps[dependency];
-        console.log('dep', dependency, version, currentVersion);
-        pkgJson.dependencies[dependency] = version;
-    }
-
-    if (hasDevDep) {
-        const currentVersion = deps[dependency];
-        console.log('devdep', dependency, version, currentVersion)
-        pkgJson.devDependencies[dependency] = version;
-    }
-
-    fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
-    console.log(`Updated ${dependency} to version ${version} in ${pkgJson.name}`);
+        if (pkg.hasDevDep) {
+            pkg.pkgJson.devDependencies[dependency.npmName] = dependency.newVersion;
+        }
+        fs.writeFile(
+            path.resolve(__dirname, '..', pkg.name, 'package.json'),
+            JSON.stringify(pkgJson, null, 2),
+            error => {
+                if (error) {
+                    reject(error);
+                }
+                resolve(pkg);
+            }
+        );
+    });
 }
 
-npmPackages.forEach(packageADir => {
-    const packageADirPath = path.resolve(__dirname, '..', packageADir);
-    const packageAJson = require(`${packageADirPath}/package.json`);
-    const packageAName = packageAJson.name;
-    const packageAVersion = packageAJson.version;
-    npmPackages.forEach(pkgBDir =>
-        updateDependencyInPackage(packageAName, packageAVersion, pkgBDir));
-});
+function commitDependencyBump(pkg, dependency) {
+    return new Promise((resolve, reject) => {
+        exec(`
+            git add ./package.json \
+            && git commit -m \"dependencyBump(${pkg.name}): ${dependency.name}@${dependency.versionChange}" \
+        `, {
+            cwd: path.resolve(__dirname, '..', pkg.name),
+            encoding: 'utf8',
+        }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Could not commit dependency bump changes for ${pkg.name}: ${error} \n ${stderr}`);
+                reject(error.status);
+            }
+            resolve(stdout);
+        });
+    });
+}
+
+module.exports = function crossUpdate(pkg, packages) {
+    return new Promise((resolve, reject) => {
+        const updateAllDependencies = packages
+            .filter(pkgB => pkgB.name !== pkg.name)
+            .filter(pkgB => {
+                const pkgBDir = path.resolve(__dirname, '..', pkgB.name);
+                const pkgBJSON = require(path.resolve(pkgBDir, 'package.json'));
+                const deps = pkgBJSON.dependencies || {};
+                const devDeps = pkgBJSON.devDependencies || {};
+                const hasDep = pkg.npmName in deps && compareSemver(pkg.newVersion, deps[pkg.npmName]) === 1;
+                const hasDevDep = pkg.npmName in devDeps && compareSemver(pkg.newVersion, devDeps[pkg.npmName]) === 1;
+                return Object.assign({}, pkgB, {
+                    hasDep,
+                    hasDevDep,
+                    pkgJson: pkgBJSON,
+                });
+            })
+            .filter(pkgB => pkgB.hasDep || pkgB.hasDevDep)
+            .map(pkgB => updateDependency(pkgB, pkg))
+            .map()
+
+        Promise.all(updateAllDependencies).then();
+    });
+}

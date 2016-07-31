@@ -1,57 +1,46 @@
 #!/usr/bin/env node
 'use strict';
 
-const checkPackageRelease = require('./check-package-release');
+const checkAllForRelease = require('./check-all-for-release');
+const findPackages = require('./find-packages');
+const getIntiailCommit = require('./get-initial-commit');
 
-function incrementName(code) {
-    if (code === 1) {
-        return 'patch';
-    } else if (code === 2) {
-        return 'minor';
-    } else if (code === 3) {
-        return 'major';
-    } else {
-        return '';
+function isCommitBreakingChange(commit) {
+    return (typeof commit.footer === 'string'
+        && commit.footer.indexOf('BREAKING CHANGE') !== -1);
+}
+
+function showReport(packages) {
+    if (!packages.length) {
+        console.log(`\
+Nothing to release
+
+We checked all packages and recent commits, and discovered that
+CI will not need to release any new version, according to semver.org.
+        `)
+        return;
     }
+
+    console.log(`\
+RELEASES TO DO
+
+We checked all packages and recent commits, and discovered that
+according to semver.org CI will release new versions for the
+following packages:
+    `);
+
+    packages.forEach(pkg => {
+        console.log(`${pkg.name} needs a new ${pkg.versionChange} version released because:`);
+        pkg.commitsSinceRelease.forEach(commit => {
+            console.log(`>> ${commit.header} ${isCommitBreakingChange(commit) && '(BREAKING CHANGE)'}`);
+        });
+        console.log();
+    });
 }
 
-function showReportHeaderPositive() {
-    console.log('RELEASES TO DO\n\n' +
-        'We checked all packages and recent commits, and discovered that\n' +
-        'according to semver.org you should release new versions for the\n' +
-        'following packages.\n');
-}
-
-function showReportHeaderNegative() {
-    console.log('Nothing to release.\n\n' +
-        'We checked all packages and recent commits, and discovered that\n' +
-        'you do not need to release any new version, according to semver.org.')
-}
-
-function showReport(status) {
-    const headerShown = false;
-    for (let pkg in status) {
-        if (status.hasOwnProperty(pkg) && status[pkg].increment > 0) {
-            if (!headerShown) {
-                showReportHeaderPositive();
-                headerShown = true;
-            }
-
-            console.log('`' + pkg + '` needs a new ' +
-                incrementName(status[pkg].increment).toUpperCase() +
-                ' version released because:');
-            status[pkg].commits.forEach(function (commit) {
-                console.log('  . ' + commit.header);
-                if (isCommitBreakingChange(commit)) {
-                    console.log('    BREAKING CHANGE');
-                }
-            });
-            console.log('');
-        }
-    }
-    if (!headerShown) {
-        showReportHeaderNegative();
-    }
-}
-
-checkPackageRelease().then(status => showReport(status));
+Promise.resolve()
+    .then(() => Promise.all([findPackages(), getIntiailCommit()]))
+    .then(results => checkAllForRelease(results[0], results[1]))
+    .then(packages => packages.filter(pkg => !pkg.newVersion))
+    .then(packages => showReport(packages))
+    .catch(error => console.error(error));
