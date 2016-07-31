@@ -1,3 +1,13 @@
+<a name="2.2.1"></a>
+## 2.2.1 (2016-07-31)
+
+
+### Bug Fixes
+
+* **pkg2:** change the message ([443e982](https://github.com/pekala/monorepo-test/commit/443e982))
+
+
+
 <a name="2.2.0"></a>
 # 2.2.0 (2016-07-31)
 
