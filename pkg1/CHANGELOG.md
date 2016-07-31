@@ -1,3 +1,13 @@
+<a name="3.0.4"></a>
+## 3.0.4 (2016-07-31)
+
+
+### Bug Fixes
+
+* **pkg1:** adjust copy ([012b0d1](https://github.com/pekala/monorepo-test/commit/012b0d1))
+
+
+
 <a name="3.0.3"></a>
 ## 3.0.3 (2016-07-26)
 
