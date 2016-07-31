@@ -1,3 +1,13 @@
+<a name="2.2.2"></a>
+## 2.2.2 (2016-07-31)
+
+
+### Bug Fixes
+
+* **pkg2:** update dependency version ([cb3a18d](https://github.com/pekala/monorepo-test/commit/cb3a18d))
+
+
+
 <a name="2.2.1"></a>
 ## 2.2.1 (2016-07-31)
 
