@@ -1,3 +1,13 @@
+<a name="2.2.0"></a>
+# 2.2.0 (2016-07-31)
+
+
+### Features
+
+* **pkg2:** better message ([47bfbb4](https://github.com/pekala/monorepo-test/commit/47bfbb4))
+
+
+
 <a name="2.1.1"></a>
 ## 2.1.1 (2016-07-26)
 
