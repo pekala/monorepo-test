@@ -1,8 +1,18 @@
 {
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
-    "@commitlint/read": "^8.1.0"
-  },
-  "devDependencies": {
-    "ts-node": "^8.3.0"
+    "@types/glob": "^7.1.1",
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.2",
+    "execa": "^2.0.4",
+    "glob": "^7.1.4",
+    "jest": "^24.9.0",
+    "parse-commit-message": "^3.2.3",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
   }
 }
