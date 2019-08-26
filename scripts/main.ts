@@ -1,8 +1,8 @@
 import { plugins, applyPlugins, parse } from "parse-commit-message";
 import getRawCommit from "./get-raw-commit";
 import getAffectedFiles from "./get-affected-files";
-import getAffectedPkgs from "./get-affected-packages";
-import bumpPackageVersions from "./bump-package-versions";
+import getAffectedPkgs from "./get-affected-pkgs";
+import bumpPkgVersions from "./bump-pkg-version";
 import { Increment } from "types";
 
 const BUMPS: Increment[] = [false, "patch", "minor", "major"];
@@ -33,17 +33,17 @@ async function* walkCommits() {
 }
 
 export async function run() {
-  let byPackage: {
-    [packageDir: string]: { commits: any[]; increment: Increment };
+  let byPkg: {
+    [pkgDir: string]: { commits: any[]; increment: Increment };
   } = {};
 
   for await (let data of walkCommits()) {
     data.affectedPkgs.forEach(affectedPkg => {
-      byPackage[affectedPkg] = byPackage[affectedPkg] || {
+      byPkg[affectedPkg] = byPkg[affectedPkg] || {
         commits: [],
         increment: BUMPS[0]
       };
-      const commits = byPackage[affectedPkg];
+      const commits = byPkg[affectedPkg];
       commits.commits.push(data);
       commits.increment =
         BUMPS.indexOf(data.commit.increment) > BUMPS.indexOf(commits.increment)
@@ -52,9 +52,11 @@ export async function run() {
     });
   }
 
-  Object.keys(byPackage).forEach(pkgDir => {
-    bumpPackageVersions(pkgDir, byPackage[pkgDir].increment);
-  });
+  for await (let pkgDir of Object.keys(byPkg)) {
+    await bumpPkgVersions(pkgDir, byPkg[pkgDir].increment);
+  }
 
-  return byPackage;
+  return byPkg;
 }
+
+run().catch(error => console.error(error));
