@@ -1,6 +1,6 @@
 {
-  "name": "pkg-b",
-  "version": "1.0.0",
+  "name": "@pekala/pkg-b",
+  "version": "1.3.0",
   "main": "index.js",
   "license": "MIT"
 }
